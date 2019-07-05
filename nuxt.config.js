@@ -48,6 +48,7 @@ module.exports = {
     */
     extend(config, ctx) {
     },
-    cache: true
+    // https://github.com/nuxt/nuxt.js/issues/3804
+    cache: false
   }
 }
