@@ -43,6 +43,7 @@
 </template>
 
 <script>
+  import CryptoJS from 'crypto-js'
   export default {
     layout: 'blank',
     data() {
@@ -99,7 +100,7 @@
         if (!namePass && !emailPass) {
           // 可以直接使用 $nuxt.config.js 中做了配置
           this.$axios.post('/users/verify', {
-            username: encodeURIComponent(this.ruleForm.name), // 对中文进行编码
+            username: encodeURIComponent(this.ruleForm.name), // 对中文进行编码,否则服务端收到的就是乱码
             email: this.ruleForm.email
           }).then(({ status, data }) => {
             if (status === 200 && data && data.code === 0) {
@@ -118,7 +119,30 @@
         }
       },
       register () {
-
+        this.$refs['ruleForm'].validate((valid) => {
+          if (valid) {
+            this.$axios.post('/users/signup', {
+              username: window.encodeURIComponent(this.ruleForm.name),
+              password: CryptoJS.MD5(this.ruleForm.pwd).toString(), // 注意，这里需要使用 toString 才能达到 hash 效果。
+              email: this.ruleForm.email,
+              code: this.ruleForm.code
+            }).then(({status, data}) => {
+              if (status === 200) {
+                if (data && data.code === 0) {
+                  location.href = '/login'
+                } else {
+                  this.error = data.msg
+                }
+              } else {
+                this.error = `服务器出错，错误码：${status}`
+              }
+              // 定时清空错误
+              setTimeout(() => {
+                this.error = ''
+              }, 1500)
+            })
+          }
+        })
       }
     }
   }
