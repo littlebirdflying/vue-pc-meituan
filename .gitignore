@@ -86,3 +86,6 @@ sw.*
 
 # Mac OSX
 .DS_Store
+
+#config 不上传授权码
+config.js

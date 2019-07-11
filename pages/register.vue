@@ -85,7 +85,37 @@
     },
     methods: {
       sendMsg () {
-
+        let namePass
+        let emailPass
+        if (this.timerid) { return false }
+        this.$refs['ruleForm'].validateField('name', (valid) => {
+          namePass = valid // valid 有值，说明没有通过验证
+        })
+        this.statusMsg = ''
+        if (namePass) { return false }
+        this.$refs['ruleForm'].validateField('email', (valid) => {
+          emailPass = valid
+        })
+        if (!namePass && !emailPass) {
+          // 可以直接使用 $nuxt.config.js 中做了配置
+          this.$axios.post('/users/verify', {
+            username: encodeURIComponent(this.ruleForm.name), // 对中文进行编码
+            email: this.ruleForm.email
+          }).then(({ status, data }) => {
+            if (status === 200 && data && data.code === 0) {
+              let count = 60
+              this.statusMsg = `验证码已发送，剩余${count--}秒`
+              this.timerid = setInterval(() => {
+                this.statusMsg = `验证码已发送，剩余${count--}秒`
+                if (count === 0) {
+                  clearInterval(this.timerid)
+                }
+              }, 1000)
+            } else {
+              this.statusMsg = data.msg
+            }
+          })
+        }
       },
       register () {
 
